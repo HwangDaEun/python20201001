@@ -1,0 +1,53 @@
+# 이 코드로 메일을 보내기 위해서 구글 계정의 2중 인증을 취소해야함
+# 취소하는 url : https://myaccount.google.com/signinoptions/two-step-verification
+
+# 보안 수준이 낮은 앱 해제하기도 허용해줘야함
+# 허용하는 url : https://myaccount.google.com/lesssecureapps
+
+# 실제로 이 코드를 사용해서 메일 보낼 때는 테스트 계정을 하나 파야할듯
+
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
+from email import encoders
+
+
+# 보내는 사람 정보
+me = " hde0802@gmail.com"
+my_password = "daeun960802"
+
+# 로그인하기
+s = smtplib.SMTP_SSL('smtp.gmail.com')
+s.login(me, my_password)
+
+# 받는 사람 정보
+#you = "hde0802@gmail.com"
+# 여러 명에세 보내기
+emails = ['hde0802@gmail.com','hde0802@gmail.com']
+for you in emails:
+    # 메일 기본 정보 설정
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = "[공유] 추석기사]"
+    msg['From'] = me
+    msg['To'] = you
+
+    # 메일 내용 쓰기
+    content = "추석에 뭐해?"
+    part2 = MIMEText(content, 'plain')
+    msg.attach(part2)
+
+    # sendmail 바로 앞에 파일 첨부 코드 붙이기
+    part = MIMEBase('application', "octet-stream")
+    with open("articles.xlsx", 'rb') as file:
+        part.set_payload(file.read())
+    encoders.encode_base64(part)
+    # 추석기사라는 파일제목으로 보내기
+    part.add_header('Content-Disposition', "attachment", filename="추석기사.xlsx")
+    msg.attach(part)
+
+
+    # 메일 보내고 서버 끄기
+    s.sendmail(me, you, msg.as_string())
+
+s.quit()
